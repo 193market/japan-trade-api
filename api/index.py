@@ -193,3 +193,12 @@ async def current_account(limit: int = Query(default=10, ge=1, le=60)):
         "updated_at": datetime.utcnow().isoformat() + "Z",
         "data": data,
     }
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    if request.url.path == "/":
+        return await call_next(request)
+    key = request.headers.get("X-RapidAPI-Key", "")
+    if not key:
+        return JSONResponse(status_code=401, content={"detail": "Missing X-RapidAPI-Key header"})
+    return await call_next(request)
